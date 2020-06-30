@@ -11,6 +11,6 @@ class ImmediateInvalidator implements InvalidatorInterface
      */
     public function invalidate(string $filename): void
     {
-        var_dump($filename);
+        unlink($filename);
     }
 }
