@@ -6,6 +6,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Zebrains\Filecache\Converter;
 use Zebrains\Filecache\Item;
 use Zebrains\Filecache\Manager;
+use Zebrains\Filecache\ImmediateInvalidator;
 use Zebrains\Filecache\Formatters\{NativeFormatter, RawFormatter};
 
 class ManagerTest extends MockeryTestCase
@@ -19,7 +20,7 @@ class ManagerTest extends MockeryTestCase
 
         $ttl = strtotime('now') + 60*60*24;
 
-        $manager = new Manager($path, new Converter(), new NativeFormatter());
+        $manager = new Manager($path, new Converter(), new NativeFormatter(), new ImmediateInvalidator());
 
         $manager->clear();
 
@@ -69,7 +70,7 @@ class ManagerTest extends MockeryTestCase
     {
         $path = __DIR__ . '/data';
 
-        $manager = new Manager($path, new Converter(), new NativeFormatter());
+        $manager = new Manager($path, new Converter(), new NativeFormatter(), new ImmediateInvalidator());
         
         $key = '1:/products/product1';
         $data = 'Hi, I am a cached data';
@@ -77,7 +78,7 @@ class ManagerTest extends MockeryTestCase
 
         $manager->set($key, $data, $ttl);
 
-        $manager->get($key);
+        $this->assertEmpty($manager->get($key));
     }
 
     /**
@@ -87,7 +88,7 @@ class ManagerTest extends MockeryTestCase
     {
         $path = __DIR__ . '/data';
 
-        $manager = new Manager($path, new Converter(), new RawFormatter());
+        $manager = new Manager($path, new Converter(), new RawFormatter(), new ImmediateInvalidator());
 
         $key = '1:/products/product1';
         $data = 'Hi, I am a cached data';
@@ -106,7 +107,7 @@ class ManagerTest extends MockeryTestCase
     {
         $path = __DIR__ . '/data';
 
-        $manager = new Manager($path, new Converter(), new RawFormatter());
+        $manager = new Manager($path, new Converter(), new RawFormatter(), new ImmediateInvalidator());
 
         $data = [
             '1:/products/product1' => 'First cached data',

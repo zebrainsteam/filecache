@@ -35,7 +35,6 @@ class Manager implements TagAwareCache, MaskAwareCache
         string $path, 
         Converter $converter, 
         FormatterInterface $formatter,
-        FormatterInterface $formatter,
         InvalidatorInterface $invalidator
     )
     {
