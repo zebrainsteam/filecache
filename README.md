@@ -12,10 +12,10 @@
 ```
 use Zebrains\Filecache\Manager;
 use Zebrains\Filecache\ImmediateInvalidator;
-use Zebrains\Filecache\Formatters\Converter;
+use Zebrains\Filecache\\Converter;
 use Zebrains\Filecache\Formatters\RawFormatter;
 
-$manager = new Manager($path, new Converter(), new NativeFormatter(), new ImmediateInvalidator());
+$manager = new Manager($path, new Converter(), new RawFormatter(), new ImmediateInvalidator());
 ```
 
 Менеджер реализует интерфейс `Psr\SimpleCache\CacheInterface`:
