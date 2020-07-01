@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Zebrains\Filecache\Contracts;
 
-interface MaskAwareCache
+use Psr\SimpleCache\CacheInterface;
+
+interface MaskAwareCache extends CacheInterface
 {
     /**
      * getByMask.
