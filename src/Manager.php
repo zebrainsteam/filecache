@@ -31,17 +31,31 @@ class Manager implements TagAwareCache, MaskAwareCache
      */
     protected $invalidator;
 
+    /**
+     * @var Storage $storage
+     */
+    protected $storage;
+
     public function __construct(
         string $path, 
         Converter $converter, 
         FormatterInterface $formatter,
-        InvalidatorInterface $invalidator
+        InvalidatorInterface $invalidator,
+        Storage $storage = null
     )
     {
-        $this->basePath = $path;
+        if (empty($storage)) {
+            $storage = new Storage();
+        }
+        
         $this->converter = $converter;
         $this->formatter = $formatter;
         $this->invalidator = $invalidator;
+        $this->storage = $storage;
+
+        $this->storage->init($path);
+
+        $this->basePath = $path;
     }
 
     /**
@@ -85,7 +99,7 @@ class Manager implements TagAwareCache, MaskAwareCache
             return false;
         }
 
-        $filename = $this->basePath . '/' . $search . '.txt';
+        $filename = $this->basePath . DIRECTORY_SEPARATOR . $search . '.txt';
 
         unlink($filename);
 
@@ -97,12 +111,10 @@ class Manager implements TagAwareCache, MaskAwareCache
      */
     public function clear()
     {
-        $files = glob($this->basePath . '/*.txt');
+        $files = $this->storage->getFileList($this->basePath . DIRECTORY_SEPARATOR . '*.txt');
 
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                unlink($file);
-            }
+        foreach ($files as $filename) {
+            $this->storage->delete($filename);
         }
     }
 
@@ -204,9 +216,9 @@ class Manager implements TagAwareCache, MaskAwareCache
         }
 
         foreach ($entries as $entry) {
-            $filename = $this->basePath . '/' . (string) $entry . '.txt';
+            $filename = $this->basePath . DIRECTORY_SEPARATOR . (string) $entry . '.txt';
 
-            unlink($filename);
+            $this->storage->delete($filename);
         }
     }
 
@@ -256,9 +268,9 @@ class Manager implements TagAwareCache, MaskAwareCache
      */
     protected function getSearchResults(string $mask, string $tag = '*'): ?array
     {
-        $mask = $this->basePath . '/' . $mask . Item::DELIMITER . $tag . '.txt';
+        $mask = $this->basePath . DIRECTORY_SEPARATOR . $mask . Item::DELIMITER . $tag . '.txt';
 
-        $files = glob($mask);
+        $files = $this->storage->getFileList($mask);
 
         if (empty($files)) {
             return null;
@@ -269,7 +281,7 @@ class Manager implements TagAwareCache, MaskAwareCache
         $now = strtotime('now');
 
         foreach ($files as $filename) {
-            $content = json_decode(file_get_contents($filename), true);
+            $content = json_decode($this->storage->getContents($filename), true);
 
             if (isset($content['ttl']) && $content['ttl'] < $now) {
                 $this->invalidator->invalidate($filename);
@@ -299,7 +311,7 @@ class Manager implements TagAwareCache, MaskAwareCache
     protected function getKeyFromFilename(string $filename): string
     {
         return strtr($filename, [
-            $this->basePath . '/' => '',
+            $this->basePath . DIRECTORY_SEPARATOR => '',
             '.txt' => '',
         ]);
     }
@@ -317,8 +329,8 @@ class Manager implements TagAwareCache, MaskAwareCache
             throw new InvalidArgumentException('Data already exists');
         }
 
-        $filename = $this->basePath . '/' . $item->__toString() . '.txt';
+        $filename = $this->basePath . DIRECTORY_SEPARATOR . $item->__toString() . '.txt';
 
-        $result = file_put_contents($filename, json_encode($item));
+        $this->storage->putContents($filename, json_encode($item));
     }
 }
